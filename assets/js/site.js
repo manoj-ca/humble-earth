@@ -31,7 +31,14 @@
     l.innerHTML = `<input type="checkbox" value="${j.id}"${chosen.has(j.id) ? ' checked' : ''}><span>${j.t}</span>`;
     l.querySelector('input').addEventListener('change', (e) => {
       e.target.checked ? chosen.add(j.id) : chosen.delete(j.id);
-      if (e.target.checked) showPhoto(j);
+      if (e.target.checked) {
+        if (j.id === 'pad' && !chosen.has('clear')) {
+          chosen.add('clear');
+          const clearBox = $('#jobs input[value="clear"]');
+          if (clearBox) clearBox.checked = true;
+        }
+        showPhoto(j);
+      }
       paint();
     });
     return l;
@@ -49,6 +56,15 @@
   function paint() {
     $$('#lot-svg .job').forEach(g => g.classList.toggle('on', chosen.has(g.dataset.job)));
     $$('#lot-svg .tree-z').forEach(g => g.classList.toggle('off', chosen.has('clear')));
+    const hasWall = chosen.has('wall');
+    const groundD = hasWall
+      ? 'M300,350 L420,334 L572,334 L572,306 L580,306 L700,296 L880,286 L1000,276 L1200,262 V600 H300Z'
+      : 'M300,350 L420,334 L520,318 L580,306 L700,296 L880,286 L1000,276 L1200,262 V600 H300Z';
+    const surfaceD = hasWall
+      ? 'M300,350 L420,334 L572,334 M580,306 L700,296 L880,286 L1000,276 L1200,262'
+      : 'M300,350 L420,334 L520,318 L580,306 L700,296 L880,286 L1000,276 L1200,262';
+    $$('#under path, #lot-svg .ground, #lot-svg .soil').forEach(p => p.setAttribute('d', groundD));
+    $('#lot-svg .surface').setAttribute('d', surfaceD);
     const list = $('#order-list'); list.innerHTML = '';
     JOBS.filter(j => chosen.has(j.id)).forEach(j => {
       const li = document.createElement('li'); li.innerHTML = `<b>${j.t}</b><span>${j.d}</span>`; list.appendChild(li);
